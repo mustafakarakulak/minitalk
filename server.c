@@ -5,44 +5,51 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: mkarakul <mkarakul@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/01/18 12:38:13 by mkarakul          #+#    #+#             */
-/*   Updated: 2023/01/18 19:26:23 by mkarakul         ###   ########.fr       */
+/*   Created: 2023/01/14 18:34:30 by mkarakul          #+#    #+#             */
+/*   Updated: 2023/01/19 18:34:30 by mkarakul         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minitalk.h"
 
-void	convert_binary_to_char(int c)
+static void	catch_signal(int signum, siginfo_t *siginfo, void *unused)
 {
-	static int	i = 7;
 	static int	character = 0;
+	static int	index = 7;
+	int			c;
 
-	character += c << i;
-	if (i == 0)
+	(void)unused;
+	if (signum == SIGUSR1)
+		c = 1;
+	else
+		c = 0;
+	character += c << index;
+	if (index == 0)
 	{
-		i = 7;
 		write(1, &character, 1);
 		character = 0;
+		index = 7;
+		if (kill(siginfo->si_pid, SIGUSR2) == -1)
+			ft_putstr("Sinyal Gönderme Hatası\n");
 	}
 	else
-		i--;
-}
-
-void	signal_handler(int sig)
-{
-	if (sig == SIGUSR1)
-		convert_binary_to_char(1);
-	else if (sig == SIGUSR2)
-		convert_binary_to_char(0);
+		index--;
 }
 
 int	main(void)
 {
-	signal(SIGUSR1, signal_handler);
-	signal(SIGUSR2, signal_handler);
-	write(1, "Server Pid : ", 13);
-	ft_itoa(getpid());
-	write(1, "\n", 1);
+	struct sigaction	sinyal;
+
+	ft_putstr("Server Pid => ");
+	ft_putnbr(getpid());
+	ft_putchar('\n');
+	sinyal.sa_flags = SA_SIGINFO;
+	sinyal.sa_sigaction = catch_signal;
+	if (sigaction(SIGUSR1, &sinyal, 0) == -1)
+		ft_putstr("Sinyal Hatası!");
+	if (sigaction(SIGUSR2, &sinyal, 0) == -1)
+		ft_putstr("Sinyal Hatası!");
 	while (1)
 		pause();
+	return (0);
 }

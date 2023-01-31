@@ -1,12 +1,12 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    makefile                                           :+:      :+:    :+:    #
+#    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: mkarakul <mkarakul@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
-#    Created: 2023/01/18 11:32:19 by mkarakul          #+#    #+#              #
-#    Updated: 2023/01/18 11:33:22 by mkarakul         ###   ########.fr        #
+#    Created: 2023/01/19 19:40:10 by mkarakul          #+#    #+#              #
+#    Updated: 2023/01/19 19:40:10 by mkarakul         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,17 +14,32 @@ CC = gcc
 
 CFLAGS = -Wall -Werror -Wextra -I./
 
-CLIENT = $(CC) $(CFLAGS) client.c mt_utils.c -o client
+CLIENT = $(CC) $(CFLAGS) client.c minitalk_utils.c -o client
 
-SERVER = $(CC) $(CFLAGS) server.c mt_utils.c -o server
+SERVER = $(CC) $(CFLAGS) server.c minitalk_utils.c -o server
 
-all:
+BONUS-CLIENT = $(CC) $(CFLAGS) client.c minitalk_utils.c -o client
+
+BONUS_SERVER = $(CC) $(CFLAGS) server.c minitalk_utils.c -o server
+
+CLIENT_NAME = client
+
+SERVER_NAME = server
+
+all: $(CLIENT_NAME) $(SERVER_NAME)
+
+$(CLIENT_NAME):
 	$(CLIENT)
+$(SERVER_NAME):
 	$(SERVER)
+
+bonus: $(CLIENT_NAME) $(SERVER_NAME)
+	$(BONUS_CLIENT)
+
 clean:
 	rm -rf client server
 fclean: clean
 
-re : all
+re: clean all
 
 .PHONY: all clean fclean re

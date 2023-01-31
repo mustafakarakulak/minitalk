@@ -5,57 +5,68 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: mkarakul <mkarakul@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/01/18 10:21:26 by mkarakul          #+#    #+#             */
-/*   Updated: 2023/01/18 19:26:53 by mkarakul         ###   ########.fr       */
+/*   Created: 2023/01/19 18:34:23 by mkarakul          #+#    #+#             */
+/*   Updated: 2023/01/19 18:34:23 by mkarakul         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minitalk.h"
 
-void	send_character_bits(int c, int pid)
+void	send_signal(int signum, unsigned char *message)
 {
-	int				i;
-	unsigned char	message_c;
+	int	i;
+	int	c;
 
-	message_c = c;
+	c = 0;
 	i = 128;
-	while (i)
+	while (message[c] != '\0')
 	{
-		if (message_c / i >= 1)
+		while (i >= 1)
 		{
-			message_c %= i;
-			kill(pid, SIGUSR1);
+			if (message[c] / i)
+			{
+				kill(signum, SIGUSR1);
+				message[c] = message[c] % i;
+			}
+			else
+				kill(signum, SIGUSR2);
+			usleep(100);
+			i /= 2;
 		}
-		else
-			kill(pid, SIGUSR2);
-		usleep(95);
-		i /= 2;
+		i = 128;
+		c++;
 	}
 }
 
-void	send_message(char *message, int pid)
+void	catch_signal(int signum, siginfo_t *siginfo, void *unused)
 {
-	while (*message)
+	static int	first_time = 1;
+
+	(void)signum;
+	(void)siginfo;
+	(void)unused;
+	if (first_time)
 	{
-		send_character_bits(*message, pid);
-		message++;
+		ft_putstr("Mesaj başarıyla gönderildi!\n");
+		first_time = 0;
 	}
-	send_character_bits('\n', pid);
 }
 
-int	main(int argc, char **argv)
+int	main(int arg, char **argc)
 {
-	int		pid;
-	char	*message;
+	struct sigaction	signal;
+	int					p_id;
 
-	if (argc == 3)
+	signal.sa_flags = SA_SIGINFO;
+	signal.sa_sigaction = catch_signal;
+	if ((sigaction(SIGUSR2, &signal, 0)) == -1)
+		ft_putstr("Sinyal Gönderme Hatası\n");
+	if (arg == 3)
 	{
-		pid = ft_atoi(argv[1]);
-		message = argv[2];
-		send_message(message, pid);
-		return (1);
+		p_id = ft_ascii_toint(argc[1]);
+		send_signal(p_id, (unsigned char *)argc[2]);
 	}
 	else
-		write(1, "ERROR: ./client <pid> message\n", 31);
+		ft_putstr("./clinet <pid> [message]");
 	return (0);
 }
